@@ -8,8 +8,6 @@ const bcrypt = require('bcrypt');
 router.route('/:id').get((req, res) => {
     const { id } = req.params;
    
-    console.log('userIddisfhjosdihfois', req.params);
-
     User.findById(id).
     then((user) => {
 
@@ -101,6 +99,21 @@ router.route('/add').post((req, res) => {
         })
     }
 });
+
+
+router.route('/delete/:id').delete((req, res) => {
+    const objId = req.params.id;
+    if (objId) {
+        User.deleteOne({ _id: objId } , (err, obj) => {
+        
+            if (err) return res.status(400).json({ success: false, message: err});
+            res.json({ success: true });
+
+        })
+    }
+});
+    
+   
 
 
 
