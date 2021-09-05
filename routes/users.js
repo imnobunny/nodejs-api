@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const User = require('../models/user.model');
+const bcrypt = require('bcrypt');
 
 /**
  * @description GET A SPECIFIC USER BY ID
@@ -68,21 +69,31 @@ router.route('/add').post((req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
+ 
     if (username && password) {
-        const newUser = new User({
-            username,
-            password
+      
+        bcrypt.hash(password, 10, (err, hash) => {
+            
+            const newUser = new User({
+                username,
+                password: hash
+            });
+
+            console.log(newUser)
+       
+            newUser.save()
+            .then(() => res.json({
+                success: true, 
+            }))
+            .catch(err => {
+                res.status(400).json({
+                    success: false, 
+                    message: err,
+                })
+            })
+
         });
         
-        newUser.save().then(() => res.json({
-            success: true, 
-        })).catch(err => {
-
-            res.status(400).json({
-                success: false, 
-                message: err,
-            })
-        })
     } else {
         res.status(200).json({
             success: false, 
@@ -90,5 +101,7 @@ router.route('/add').post((req, res) => {
         })
     }
 });
+
+
 
 module.exports = router;
