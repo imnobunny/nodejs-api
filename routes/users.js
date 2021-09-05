@@ -113,7 +113,26 @@ router.route('/delete/:id').delete((req, res) => {
     }
 });
     
-   
+router.route('/update/:_id').patch((req, res) => {
+   try {
+
+    User.findOneAndUpdate(req.params, req.body, {upsert: true}, function(err, doc) {
+       
+        if (req.body?.password) {
+            // hash password
+            bcrypt.hash(req.body.password, 10, (err, hash) => {
+                req.body.password = hash;
+            });
+
+        }
+        if (err) return res.status(400).json({ success: false, message: err });
+        return res.json({ success: true });
+    });
+
+   } catch (err) {
+        res.status(400).json({ success: false, message: err });
+   }
+});
 
 
 
