@@ -77,8 +77,6 @@ router.route('/add').post((req, res) => {
                 password: hash
             });
 
-            console.log(newUser)
-       
             newUser.save()
             .then(() => res.json({
                 success: true, 
@@ -139,9 +137,6 @@ router.route('/update/:_id').patch((req, res) => {
         });
         
     }
-
-
-   
 
    } catch (err) {
         res.status(400).json({ success: false, message: err });
