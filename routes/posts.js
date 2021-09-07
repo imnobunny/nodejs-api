@@ -63,4 +63,29 @@ router.route('/add').post((req, res) => {
     }
 });
 
+// Get Posts By UserId
+router.route('/user/:id').get((req, res) => {
+    try {
+        const userId = req.params.id;
+        Post.find({
+            user: userId
+        }).then((posts) => {
+            res.json({
+                success: true,
+                posts: posts
+            });
+        }).catch((error) => {
+            res.json({
+                success: false,
+                message: error
+            });
+        })
+    } catch (err) {
+        res.json({
+            success: false,
+            message: err
+        });
+    }
+});
+
 module.exports = router;
