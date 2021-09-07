@@ -11,8 +11,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const databaseUrl =process.env.DATABASE_URL || 'mongodb+srv://admin:admin1234@cbk.p9e2b.mongodb.net/redvelvet?retryWrites=true&w=majority';
-
+const databaseUrl =process.env.DATABASE_URL;
 mongoose.connect(databaseUrl, { 
     useNewUrlParser: true,
     useUnifiedTopology: true,
