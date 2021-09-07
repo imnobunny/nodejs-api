@@ -26,9 +26,12 @@ connection.once('open', () => {
 // ROUTES
 const usersRouter = require('./routes/users');
 const postsRouter = require('./routes/posts');
+const authRouter = require('./routes/auth');
 
+app.use('/api/v1', authRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/posts', postsRouter);
+
 
 app.listen(port, ()=> {
     console.log('Running on port: ', port);
