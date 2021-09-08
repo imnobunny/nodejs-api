@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const Post = require('../models/post.model');
 
-router.route('/').get((req, res) => {
+router.get('/', (req, res) => {
    try {
         Post.find().then((posts) => {
             if (posts.length) {

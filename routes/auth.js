@@ -39,7 +39,7 @@ router.route('/login').post((req, res) => {
                     }, process.env.SECRET_KEY, {expiresIn: '1hr'}, (err, token)=> {
                         // if generating token is err
                         if (err) sendRes({ success: false , message: err });
-                        // save token and its user id to session;
+                        // save new token and its user id to session;
                         const newSession = new Session({
                             userId: user._id,
                             token
