@@ -24,13 +24,13 @@ router.route('/login').post((req, res) => {
         
             if (!res || err) return sendRes({ success: false , message: 'Password is incorrect' });
            
-            jwt.sign({
-                username,
-                userid: user._id
-            }, process.env.SECRET_KEY, (err, token)=> {
-                if (err) sendRes({ success: true , token });
-                sendRes({ success: true , token });
-            })
+                jwt.sign({
+                    username,
+                    userid: user._id
+                }, process.env.SECRET_KEY, {expiresIn: '1hr'}, (err, token)=> {
+                    if (err) sendRes({ success: true , token });
+                    sendRes({ success: true , token });
+                });
             
         }); 
 
@@ -41,5 +41,7 @@ router.route('/login').post((req, res) => {
     
     
 });
+
+
 
 module.exports = router;
