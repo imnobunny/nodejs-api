@@ -1,6 +1,7 @@
 # red
 
 backend of an untitled project
+stacks: NodeJs and Express.
 
 ### HEROKU DEPLOYMENT:
 
