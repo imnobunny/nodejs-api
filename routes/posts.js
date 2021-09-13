@@ -25,7 +25,6 @@ router.get('/', (req, res) => {
    }
 });
 
-
 router.route('/add').post((req, res) => {
     const post = req.body.post;
     const user = req.body.user;
@@ -85,6 +84,25 @@ router.route('/user/:id').get((req, res) => {
             success: false,
             message: err
         });
+    }
+});
+
+router.route('/delete/:id').delete((req, res)=> {
+    const _id = req.params.id;
+    try {
+        Post.deleteOne({ _id }, (err, result)=> {
+            
+            if (err) return res.status(400).json({ success: false, message: err });
+
+            if (result.deletedCount) {
+                res.status(200).json({ success: true });
+            } else {
+                res.status(200).json({ success: false, message: "Post Id not Found" });
+            }
+            
+        })
+    } catch(err) {
+        res.status(400).json({ success: false, message: err });
     }
 });
 
