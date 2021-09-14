@@ -1,11 +1,11 @@
 const router = require('express').Router();
 const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
-
+const auth = require("../middleware/auth");
 /**
  * @description GET A SPECIFIC USER BY ID
  */
-router.route('/:id').get((req, res) => {
+router.get('/:id', auth ,(req, res) => {
     const { id } = req.params;
    
     User.findById(id).
@@ -35,7 +35,7 @@ router.route('/:id').get((req, res) => {
 /**
  * @description GET ALL THE AVAILABLE USERS
 */
-router.route('/').get((req, res) => {
+router.get('/', auth, (req, res) => {
     User.find()
     .then(users => {
         if (users.length) {
@@ -62,7 +62,7 @@ router.route('/').get((req, res) => {
  * @param {String} username - user entered username 
  * @param {String}  password - account password
  */
-router.route('/add').post((req, res) => {
+router.post('/add', auth, (req, res) => {
 
     const username = req.body.username;
     const password = req.body.password;
@@ -98,8 +98,7 @@ router.route('/add').post((req, res) => {
     }
 });
 
-
-router.route('/delete/:id').delete((req, res) => {
+router.delete('/delete/:id', auth, (req, res) => {
     const objId = req.params.id;
     if (objId) {
         User.deleteOne({ _id: objId } , (err, obj) => {
@@ -111,7 +110,7 @@ router.route('/delete/:id').delete((req, res) => {
     }
 });
     
-router.route('/update/:_id').patch((req, res) => {
+router.patch('/update/:_id', auth, (req, res) => {
    try {
 
     if (req.body?.password) {

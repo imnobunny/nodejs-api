@@ -1,7 +1,8 @@
 const router = require('express').Router();
+const auth = require("../middleware/auth");
 const Post = require('../models/post.model');
 
-router.get('/', (req, res) => {
+router.get('/', auth, (req, res) => {
    try {
         Post.find().then((posts) => {
             if (posts.length) {
@@ -25,7 +26,8 @@ router.get('/', (req, res) => {
    }
 });
 
-router.route('/add').post((req, res) => {
+// Create new Post
+router.post('/add', auth, (req, res) => {
     const post = req.body.post;
     const user = req.body.user;
 
@@ -63,7 +65,7 @@ router.route('/add').post((req, res) => {
 });
 
 // Get Posts By UserId
-router.route('/user/:id').get((req, res) => {
+router.get('/user/:id', auth, (req, res) => {
     try {
         const userId = req.params.id;
         Post.find({
@@ -87,7 +89,7 @@ router.route('/user/:id').get((req, res) => {
     }
 });
 
-router.route('/delete/:id').delete((req, res)=> {
+router.delete('/delete/:id', auth, (req, res)=> {
     const _id = req.params.id;
     try {
         Post.deleteOne({ _id }, (err, result)=> {

@@ -66,19 +66,27 @@ router.route('/login').post((req, res) => {
 
 router.route('/logout').post((req, res) => {
     try {
-        const headerAuth = req.headers.authorization;
-        const token =  headerAuth.substring(7);
-        const userId = req.body.id;
+        let headerAuth = req.headers.authorization;
+        let userId = req.body.id;
+        let token;
+
+        if (headerAuth && userId) {
+            token =  headerAuth.substring(7);
+        } else {
+            return res.json({ success: false, message: 'Missing Parameter'});
+        }
     
         const decoded = jwt.decode(token);
       
         if (decoded.userid === userId) {
             Session.deleteOne({ userId }).then((session) => {
-                if (session) res.json({ success: true });
-                res.json({ success: false, message: 'Please try again'});
+
+                if (session) return res.json({ success: true });
+                return res.json({ success: false, message: 'Please try again'});
+
             }).catch((err) => res.json({ success: false, message: err }) );
         } else {
-            res.status(400).json({
+            return res.status(400).json({
                 success: false,
                 message: "Incorrect token"
             });
