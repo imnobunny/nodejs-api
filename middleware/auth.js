@@ -5,15 +5,14 @@ const verifyToken = (req, res, next) => {
 
     let token;
     const headerAuth = req.headers.authorization;
-    const userId = req.headers.userid;
 
     // headerAuth and userId are required
-    if (headerAuth && userId) {
+    if (headerAuth) {
         token = headerAuth.substring(7);
     } else {
-        return res.status(400).json({
+        return res.status(401).json({
             success: false,
-            message: "No token found."
+            message: "Not Authorized to this resources"
         });
     }
 
@@ -25,12 +24,13 @@ const verifyToken = (req, res, next) => {
             // if error decoding the token
             if (err) return res.status(400).json({ success: false, message: err });
 
-            // check if the stored userid in the token is same with the requesting user
-            if (decoded.userid === userId) {
+            // check if the stored userid in the token is same with the user in the session
+            const userId = decoded.userid;
+            if (userId) {
                 // check the session db if the user id exists
                 Session.findOne({ userId }).then((ses) => {
                     // if the userId not exists
-                    if (!ses || ses.token !== token) return res.status(401).json({ success: false, message: "Invalid Token"});
+                    if (!ses || ses.token !== token) return res.status(401).json({ success: false, message: "Not Authorized to this resources" });
                      // return if success decoding
                      return next();
                 });
@@ -39,7 +39,7 @@ const verifyToken = (req, res, next) => {
                 //401 is invalid token , not authorize to access api
                 return res.status(401).json({
                     success: false,
-                    message: "Invalid User"
+                    message: "Not Authorized to this resources"
                 });
             }
         });
