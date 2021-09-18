@@ -136,7 +136,7 @@ router.post('/register', (req, res) => {
 
                                 // if sending of email verification failed, send notify the admin and send also the 
                                 // username and the error description
-                                SendErrorToAdmin(username, sent);
+                                sendEmail.SendErrorToAdmin(username, sent);
                                 // then notify the user that the admin will contact him/her shortly or the backend inform the admin about the
                                 // issue
                                 return res.json({ success: false, message: "Oops! An error occured while sending the email verification but don't worry, the admin will contact you shortly! "})
@@ -170,7 +170,7 @@ router.post('/register', (req, res) => {
             success: false, 
             message: err
         });
-        
+
     }
 });
 
