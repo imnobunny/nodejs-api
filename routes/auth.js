@@ -5,10 +5,11 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const auth = require("../middleware/auth");
 const validator = require("email-validator");
-const nodemailer = require("nodemailer");
+const sendEmail = require("../email/sendEmail");
 
-router.route('/login').post((req, res) => {
+router.post('/login', (req, res) => {
     try {
+        console.log('TEST')
         const username = req.body.username;
         const password = req.body.password;
     
@@ -124,52 +125,32 @@ router.post('/register', (req, res) => {
                    jwt.sign({ email: username }, process.env.SECRET_KEY, {expiresIn: '1hr'}, (err, token) => {
 
                         if (err) return res.json({ success: false, message: err });
-                        console.log('EMAIL:',  process.env.EMAIL)
-                        // send email 
-                        const transport = nodemailer.createTransport({
-                            host: process.env.HOST,
-                            secure: false,
-                            port: 587,
-                            auth: {
-                                user: process.env.EMAIL,
-                                pass: process.env.PASSWORD,
-                            },
-                            tls: {
-                                rejectUnauthorized: false
+
+                        const link = `http://localhost:5000/api/v1/confirm/email/${token}`;
+                       
+                        // Send Verify Email
+                        sendEmail.SendVerifyEmail(username, link).then((sent) => {
+
+                            console.log('Message sent::', sent);
+                            if (!sent.success) {
+
+                                // if sending of email verification failed, send notify the admin and send also the 
+                                // username and the error description
+                                SendErrorToAdmin(username, sent);
+                                // then notify the user that the admin will contact him/her shortly or the backend inform the admin about the
+                                // issue
+                                return res.json({ success: false, message: "Oops! An error occured while sending the email verification but don't worry, the admin will contact you shortly! "})
                             }
-                        });
-            
-                        const link = `http://localhost:5000/api/v1/confirm/email/${token}`
-                        transport.sendMail({
-                            from: process.env.EMAIL,
-                            to: username,
-                            subject: "Please confirm your account",
-                            html: `<html>
-                            <head>
-                              <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-                              <style>
-                                 /* Add custom classes and styles that you want inlined here */
-                              </style>
-                            </head>
-                            <body class="bg-light">
-                              <div class="container">
-                                <div class="card my-5">
-                                  <div class="card-body">
-                                    <h1>Welcome</h1>
-                                    <h5 class="text-muted mb-2">Welcome to my untitled app</h5>
-                                    <a class="btn btn-primary" href=${link}>Click here to verify your email</a>
-                                  </div>
-                                </div>
-                              </div>
-                            </body>
-                          </html>
-                          `,
-                        });
-        
-                        res.json({
-                            success: true,
-                            message: "Pending account. Please verify your email"
-                        });
+                            // if not error, return success.
+                            return res.json({
+                                success: true,
+                                message: "Pending account. Please verify your email"
+                            });
+
+                        }).catch(err => {
+                            console.log('Error sending email::', err)
+                        })
+                        
                     });
     
                 }).catch(err => {
@@ -180,13 +161,16 @@ router.post('/register', (req, res) => {
                 })
             });
         } else {
+            // If no username or password found.
             return res.json({ success: false, message: "Username and Password are required. "})
         }
     } catch (err) {
+
         res.status(400).json({
-            success2: false, 
+            success: false, 
             message: err
         });
+        
     }
 });
 
