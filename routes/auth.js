@@ -219,9 +219,16 @@ router.post('/forgot-password', (req, res) => {
             
             if (!user) return res.json({ success: false, message: "No email found"});
 
-            return res.status(400).json({
-                success: true,
-                message: user
+            jwt.sign({ username: user._id }, process.env.SECRET_KEY, {expiresIn: '15m'}, (err, token) => {
+                console.log('token', token)
+
+                // send reset email
+
+                return res.json({
+                    success: true,
+                    message: 'Reset link has been sent to your email.'
+                });
+
             });
         }).catch(err => res.json({ success: false }))
     } catch(err) {
