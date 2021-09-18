@@ -139,16 +139,31 @@ router.post('/register', (req, res) => {
                             }
                         });
             
-                        const link = `http://localhost:5000/api/v1//confirm/email/${token}`
+                        const link = `http://localhost:5000/api/v1/confirm/email/${token}`
                         transport.sendMail({
                             from: process.env.EMAIL,
                             to: username,
                             subject: "Please confirm your account",
-                            html: `<h1>Email Confirmation</h1>
-                            <h2>Hello</h2>
-                            <p>Thank you for signing up. Please confirm your email by clicking on the following link</p>
-                            <a href=${link}> Click here</a>
-                            </div>`,
+                            html: `<html>
+                            <head>
+                              <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+                              <style>
+                                 /* Add custom classes and styles that you want inlined here */
+                              </style>
+                            </head>
+                            <body class="bg-light">
+                              <div class="container">
+                                <div class="card my-5">
+                                  <div class="card-body">
+                                    <h1>Welcome</h1>
+                                    <h5 class="text-muted mb-2">Welcome to my untitled app</h5>
+                                    <a class="btn btn-primary" href=${link}>Click here to verify your email</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </body>
+                          </html>
+                          `,
                         });
         
                         res.json({
@@ -208,6 +223,25 @@ router.get('/confirm/email/:token', (req, res) => {
             success: false,
             message: err
         });
+    }
+});
+
+router.post('/forgot-password', (req, res) => {
+    try {
+        const username = req.body.username;
+        if (!username) return res.json({ success: false, message: "No email found"});
+
+        User.findOne({ username }).then((user) => {
+            
+            if (!user) return res.json({ success: false, message: "No email found"});
+
+            return res.status(400).json({
+                success: true,
+                message: user
+            });
+        }).catch(err => res.json({ success: false }))
+    } catch(err) {
+
     }
 });
 
