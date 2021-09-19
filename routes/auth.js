@@ -9,7 +9,6 @@ const sendEmail = require("../email/sendEmail");
 
 router.post('/login', (req, res) => {
     try {
-        console.log('TEST')
         const username = req.body.username;
         const password = req.body.password;
     
@@ -126,7 +125,7 @@ router.post('/register', (req, res) => {
 
                         if (err) return res.json({ success: false, message: err });
 
-                        const link = `http://localhost:5000/api/v1/confirm/email/${token}`;
+                       const link = process.env.API_LINK + '/confirm/email/' + token;  
                        
                         // Send Verify Email
                         sendEmail.SendVerifyEmail(username, link).then((sent) => {
@@ -230,7 +229,7 @@ router.post('/forgot-password', (req, res) => {
                 });
 
             });
-        }).catch(err => res.json({ success: false }))
+        }).catch(() => res.json({ success: false }))
     } catch(err) {
 
     }
