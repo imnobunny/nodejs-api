@@ -22,6 +22,8 @@ router.post('/login', (req, res) => {
         User.findOne({ username }).then(user => {
             // return false if username is incorrect / not exists.
             if (!user) return sendRes(false, 'Username is incorrect');
+
+            if(!user.isVerified) return sendRes(false, 'Please verify your account.');
             // verify passwords
             bcrypt.compare(password, user.password, (err, res)=>{
                 // passwords are not the same
@@ -184,7 +186,7 @@ router.get('/confirm/email/:token', (req, res) => {
        if (email) {
             // check if the user already verified
             User.findOne({ username: email }).then((result) => {
-                if (result.isVerified) return res.json({ success: false, message: `${email} is already verified` });
+                if (result.isVerified) return res.json({ success: false });
 
                 // update the email in the user db
                 User.findOneAndUpdate(email, { isVerified: true }, { upsert: true }, (err, doc) => {
