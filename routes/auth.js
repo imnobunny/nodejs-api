@@ -21,15 +21,16 @@ router.post('/login', (req, res) => {
         // first validate if the username exists
         User.findOne({ username }).then(user => {
             // return false if username is incorrect / not exists.
-            if (!user) return sendRes({ success: false , message: "Username is incorrect"});
+            if (!user) return sendRes(false, 'Username is incorrect');
             // verify passwords
             bcrypt.compare(password, user.password, (err, res)=>{
                 // passwords are not the same
-                if (!res || err) return sendRes({ success: false , message: 'Password is incorrect' });
+                if (!res || err) return sendRes(false, 'Password is incorrect');
                 // check the session if the userId exists and has token;
                 Session.findOne({ userId: user._id }).then((session) => {
                     if (session) {
                         // remove the token
+                        console.log('session', session)
                         Session.deleteOne({ userId: user._id }).then((res) => {
                             console.log('Deleted existing token', res);
                         }).catch((err) => console.log('Error in deleting the existing token', err));
@@ -40,7 +41,7 @@ router.post('/login', (req, res) => {
                         userid: user._id
                     }, process.env.SECRET_KEY, {expiresIn: '1hr'}, (err, token)=> {
                         // if generating token is err
-                        if (err) sendRes({ success: false , message: err });
+                        if (err) sendRes(false, err);
                         // save new token and its user id to session;
                         const newSession = new Session({
                             userId: user._id,
@@ -48,15 +49,15 @@ router.post('/login', (req, res) => {
                         });
             
                         newSession.save().then(() => {
-                            sendRes({ success: true , token });
-                        }).catch(err => sendRes({ success: false , message: err })); 
+                            sendRes(true, token);
+                        }).catch(err =>  sendRes(false, err, 400)); 
                     });
 
                 });
             }); 
 
         }).catch(err => {
-            sendRes({ success: false , message: err, status: 400 })
+            sendRes(false, err, 400);
         });
     } catch(err) {
         res.status(400).json({
