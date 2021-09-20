@@ -191,7 +191,7 @@ router.get('/confirm/email/:token', (req, res) => {
                 
                     if (err) return res.json({ success: false, message: err });
                     
-                    res.json({ success: true  });
+                    res.redirect(process.env.FRONT_END_LINK+'/login');
                 })
 
             }).catch((err) => {
