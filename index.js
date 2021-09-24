@@ -27,10 +27,12 @@ connection.once('open', () => {
 const usersRouter = require('./routes/users');
 const postsRouter = require('./routes/posts');
 const authRouter = require('./routes/auth');
+const claimRouter = require('./routes/claims');
 
 app.use('/api/v1', authRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/posts', postsRouter);
+app.use('/api/v1/claims', claimRouter);
 
 
 app.listen(port, ()=> {
