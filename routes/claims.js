@@ -55,13 +55,12 @@ router.get('/:id' , (req, res) => {
 router.patch('/verify', (req, res) => {
     try {
 
-        const _id = req.body.id;
-        
-        Claim.findOneAndUpdate(_id, { isClaim: true }, { upsert: true }, (err, doc) => {
-                
+        const secretCode = req.body.id;
+        if (!secretCode) res.json({ success: false, message: "No secret code found" });
+        Claim.findOneAndUpdate({secretCode: secretCode}, { isClaim: true }, { upsert: true }, (err, doc) => {
             if (err) return res.json({ success: false, message: err });
             
-            res.json({ success: true, message: doc });
+            return res.json({ success: true, message: doc });
         })
 
     } catch (err) {
