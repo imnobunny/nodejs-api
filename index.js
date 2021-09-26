@@ -28,12 +28,13 @@ const usersRouter = require('./routes/users');
 const postsRouter = require('./routes/posts');
 const authRouter = require('./routes/auth');
 const claimRouter = require('./routes/claims');
+const passportphilRouter = require('./routes/passport.ph');
 
 app.use('/api/v1', authRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/posts', postsRouter);
 app.use('/api/v1/claims', claimRouter);
-
+app.use('/api/v1/passport', passportphilRouter);
 
 app.listen(port, ()=> {
     console.log('Running on port: ', port);
