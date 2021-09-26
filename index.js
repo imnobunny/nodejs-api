@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const nodeCron = require("node-cron");
 
 require('dotenv').config();
 
@@ -22,6 +23,11 @@ connection.once('open', () => {
     console.log('MongoDB connection is now established successfully');
 });
 
+// Job
+
+nodeCron.schedule('* * * * *', () => {
+    console.log('running every seconds');
+})
 
 // ROUTES
 const usersRouter = require('./routes/users');

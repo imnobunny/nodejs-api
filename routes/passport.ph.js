@@ -63,4 +63,13 @@ router.get('/sites/:regionId/:countryId' , (req, res) => {
     }
 });
 
+// private route
+router.post('/appointment/timeslot', (req, res) => {
+    try {
+        res.status(400).json({ success: true })
+    } catch (err) {
+        res.status(400).json({ success: false, message: err })
+    }
+})
+
 module.exports = router;
