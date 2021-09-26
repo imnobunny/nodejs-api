@@ -1,5 +1,7 @@
 const router = require('express').Router();
 const axios = require('axios');
+const validator = require("email-validator");
+const DFA = require('../models/dfa.model');
 
 // Get Countries in Asia Pacific
 router.get('/countries' , (req, res) => {
@@ -69,6 +71,36 @@ router.post('/appointment/timeslot', (req, res) => {
         res.status(400).json({ success: true })
     } catch (err) {
         res.status(400).json({ success: false, message: err })
+    }
+});
+
+router.post('/subscribe', (req, res) => {
+    try {
+        const { email, countryId, regionId, slot, siteId } = req.body;
+
+        // validate request
+        if (!email || !validator.validate(email)  || !countryId || !regionId || !slot || !siteId) {
+            return res.json({ success: false, message: "Incomplete parameters"})
+        }
+
+        const newSubcription = new DFA({
+            email,
+            countryId,
+            regionId,
+            slot,
+            siteId
+        });
+
+        newSubcription.save()
+        .then(() => {
+            res.json({ success: true })
+        })
+        .catch((err) => {
+            res.status(400).json({ success: false, message: err });
+        });
+
+    } catch (err) {
+        res.status(400).json({ success1: false, message: err });
     }
 })
 

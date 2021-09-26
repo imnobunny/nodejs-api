@@ -107,9 +107,54 @@ const SendErrorToAdmin = async(email, error) => {
         }
     }
  }
+
+const SendDFAJobs = async(email, appointments=[]) => {
+    try {
+    console.log('sendDFAJobs')
+     if (email && appointments) {
+        console.log('SendDFAJobs email', email)
+        console.log('SendDFAJobs email', appointments)
+
+         const mailOptions = {
+             from: process.env.EMAIL,
+             to: process.env.ADMIN_EMAIL,
+             subject: "DFA CRON JOBS 👋!",
+             template: 'DFACronJob',
+             context: {
+                appointments: appointments
+             }
+         };
+         
+         // Email Template for New User
+         await transporter.sendMail(mailOptions).catch(err => {
+            console.log('SendDFAJobs email', err)
+             return {
+                 success: false, 
+                 err
+             }
+         });
+         
+     
+         return {
+             success: true, 
+             message: "Email Sent!"
+         }
+    }
+    return {
+        success: false
+    }
+    } catch (err) {
+        return {
+            success: false, 
+            message: err
+        }
+    }
+ }
+ 
  
 
 module.exports = {
     SendVerifyEmail,
-    SendErrorToAdmin
+    SendErrorToAdmin,
+    SendDFAJobs
 };

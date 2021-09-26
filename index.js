@@ -3,6 +3,8 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const nodeCron = require("node-cron");
 
+const passportjobs = require("./passport/passportjobs");
+
 require('dotenv').config();
 
 const app = express();
@@ -23,11 +25,10 @@ connection.once('open', () => {
     console.log('MongoDB connection is now established successfully');
 });
 
-// Job
-
+// Jobs
 nodeCron.schedule('* * * * *', () => {
-    console.log('running every seconds');
-})
+    passportjobs.checkSubscriptions();
+});
 
 // ROUTES
 const usersRouter = require('./routes/users');
