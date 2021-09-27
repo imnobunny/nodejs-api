@@ -1,41 +1,76 @@
 const nodemailer = require("nodemailer");
 const hbs = require('nodemailer-express-handlebars');
+const { google } = require("googleapis");
+
+const REFRESH_TOKEN = "1//04knuthmfixTTCgYIARAAGAQSNwF-L9IrNAXWKoU4ErLoUwghmQygV0-NqZe8uGJWgQyOKjJq4KhZgvta_GMGrgSkXZSbY5Im3LI";
+const CLIENT_ID="962254439349-qanau0qc6fr8uq173n346ci31j2apf7a.apps.googleusercontent.com";
+const CLIENT_SECRET="SZkiXiQy5UBo1KF2LBDfAV-Y"
+const REDIRECT_URI="https://developers.google.com/oauthplayground"
 
 
-const transporter = nodemailer.createTransport({
-    host: process.env.HOST,
-    secureConnection: false,
-    port: 587,
-    auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASSWORD,
-    },
-    tls: {
-        ciphers: 'SSLv3',
-        rejectUnauthorized: false
-    }
+const oAuth2Client = new google.auth.OAuth2(
+    CLIENT_ID,
+    CLIENT_SECRET,
+    REDIRECT_URI
+);
+
+oAuth2Client.setCredentials({
+    refresh_token: REFRESH_TOKEN
 });
 
-transporter.use('compile', hbs({
-    viewEngine: {
-        extname: '.hbs',
-        partialsDir: 'email/templates/partial/',
-        layoutsDir: 'email/templates/layout/',
-        defaultLayout: ''
-    },
-    viewPath: 'email/templates/partial/',
-    extName: '.hbs'
-}));
+
+let accessToken;
+let transporter; 
+(async function() {
+    const req = await oAuth2Client.getAccessToken().catch((err) => console.log('err', err))
+    console.log('req', req.token);
+    accessToken = req.token;
+    console.log('accessToken', accessToken);
+     transporter = nodemailer.createTransport({
+        service: 'gmail',
+        true: true,
+        port: 465,
+        auth: {
+            type: "OAuth2",
+            user: process.env.EMAIL,
+            clientId: CLIENT_ID,
+            clientSecret: CLIENT_SECRET,
+            refreshToken: REFRESH_TOKEN,
+            accessToken: accessToken,
+        },
+        tls: {
+            ciphers: 'SSLv3',
+            rejectUnauthorized: false
+        }
+    });
+
+    transporter.use('compile', hbs({
+        viewEngine: {
+            extname: '.hbs',
+            partialsDir: 'email/templates/partial/',
+            layoutsDir: 'email/templates/layout/',
+            defaultLayout: ''
+        },
+        viewPath: 'email/templates/partial/',
+        extName: '.hbs'
+    }));
+
+})();
+
+
+
+
+
 
 const SendVerifyEmail = async(email, link) => {
    try {
+       
     if (email && link) {
 
         const mailOptions = {
             from: process.env.EMAIL,
             to: email,
             subject: "Hello 👋!",
-            // text: 'Hello world?', // plain text body
             template: 'VerifyEmail',
             context: {
               verify_link: link
@@ -43,22 +78,25 @@ const SendVerifyEmail = async(email, link) => {
         };
         
         // Email Template for New User
-        await transporter.sendMail(mailOptions).catch(err => {
+        await transporter.sendMail(mailOptions).then((result) => {
+            console.log('result', result)
+            return {
+                success: true, 
+                result
+            }
+        }).catch((err) => {
             return {
                 success: false, 
                 err
             }
-        });
+        })
         
-    
-        return {
-            success: true, 
-            message: "Email Sent!"
-        }
+   } else {
+    return {
+        success: false
+    }
    }
-   return {
-       success: false
-   }
+  
    } catch (err) {
        return {
            success: false, 

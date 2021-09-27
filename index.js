@@ -26,9 +26,9 @@ connection.once('open', () => {
 });
 
 // Jobs
-nodeCron.schedule('* * * * *', () => {
-    passportjobs.checkSubscriptions();
-});
+// nodeCron.schedule('* * * * *', () => {
+//     passportjobs.checkSubscriptions();
+// });
 
 // ROUTES
 const usersRouter = require('./routes/users');
