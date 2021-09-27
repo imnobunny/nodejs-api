@@ -58,10 +58,12 @@
             </thead>
             <tbody>
               <tr style="" bgcolor="#f2f2f2">
-                  {{appointments.map(appointment) => {
-                       <td style="line-height: 24px; font-size: 16px; margin: 0; padding: 12px; border: 1px solid #e2e8f0;" align="left" valign="top">{{appointment.AppointmentDate}}</td>
-                <td style="line-height: 24px; font-size: 16px; margin: 0; padding: 12px; border: 1px solid #e2e8f0;" align="left" valign="top">{{appointment.IsAvailable}}</td>
-                }}}
+                {{#each appointments}}
+                  
+                <td style="line-height: 24px; font-size: 16px; margin: 0; padding: 12px; border: 1px solid #e2e8f0;" align="left" valign="top">{{@IsAvailable:}}: {{this}}</td>
+                >
+              
+                {{/each}}
                
               </tr>
             </tbody>

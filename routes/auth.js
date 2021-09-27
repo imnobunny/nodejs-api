@@ -129,29 +129,35 @@ router.post('/register', (req, res) => {
                         if (err) return res.json({ success: false, message: err });
 
                        const link = process.env.API_LINK + '/confirm/email/' + token;  
-                       
+                       const test = sendEmail.SendVerifyEmail(username, link);
+
+                       console.log('testtt', test)
+
+                      
                         // Send Verify Email
-                        sendEmail.SendVerifyEmail(username, link).then((sent) => {
+                        // sendEmail.SendVerifyEmail(username, link).then((sent) => {
 
-                            console.log('Message sent::', sent);
-                            if (!sent.success) {
+                        //     console.log('------------------------------------------');
+                        //     console.log(sent);
 
-                                // if sending of email verification failed, send notify the admin and send also the 
-                                // username and the error description
-                                sendEmail.SendErrorToAdmin(username, sent);
-                                // then notify the user that the admin will contact him/her shortly or the backend inform the admin about the
-                                // issue
-                                return res.json({ success: false, message: "Oops! An error occured while sending the email verification but don't worry, the admin will contact you shortly! "})
-                            }
-                            // if not error, return success.
-                            return res.json({
-                                success: true,
-                                message: "Pending account. Please verify your email"
-                            });
+                        //     if (!sent.success) {
 
-                        }).catch(err => {
-                            console.log('Error sending email::', err)
-                        })
+                        //         // if sending of email verification failed, send notify the admin and send also the 
+                        //         // username and the error description
+                        //         sendEmail.SendErrorToAdmin(username, sent);
+                        //         // then notify the user that the admin will contact him/her shortly or the backend inform the admin about the
+                        //         // issue
+                        //         return res.json({ success: false, message: "Oops! An error occured while sending the email verification but don't worry, the admin will contact you shortly! "})
+                        //     }
+                        //     // if not error, return success.
+                        //     return res.json({
+                        //         success: true,
+                        //         message: "Pending account. Please verify your email"
+                        //     });
+
+                        // }).catch(err => {
+                        //     console.log('Error sending email::', err)
+                        // })
                         
                     });
     
