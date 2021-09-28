@@ -7,7 +7,6 @@ const CLIENT_ID="962254439349-qanau0qc6fr8uq173n346ci31j2apf7a.apps.googleuserco
 const CLIENT_SECRET="SZkiXiQy5UBo1KF2LBDfAV-Y"
 const REDIRECT_URI="https://developers.google.com/oauthplayground"
 
-
 const oAuth2Client = new google.auth.OAuth2(
     CLIENT_ID,
     CLIENT_SECRET,
@@ -22,10 +21,11 @@ oAuth2Client.setCredentials({
 let accessToken;
 let transporter; 
 (async function() {
-    const req = await oAuth2Client.getAccessToken().catch((err) => console.log('err', err))
-    console.log('req', req.token);
+    const req = await oAuth2Client.getAccessToken()
+    .catch((err) => console.log('err', err))
+   
     accessToken = req.token;
-    console.log('accessToken', accessToken);
+    
      transporter = nodemailer.createTransport({
         service: 'gmail',
         true: true,
@@ -57,11 +57,6 @@ let transporter;
 
 })();
 
-
-
-
-
-
 const SendVerifyEmail = async(email, link) => {
    try {
        
@@ -78,18 +73,25 @@ const SendVerifyEmail = async(email, link) => {
         };
         
         // Email Template for New User
-        await transporter.sendMail(mailOptions).then((result) => {
-            console.log('result', result)
-            return {
-                success: true, 
-                result
-            }
-        }).catch((err) => {
+        const isEmailSent = await transporter.sendMail(mailOptions)
+        .catch((err) => {
             return {
                 success: false, 
                 err
             }
         })
+
+        if (isEmailSent.accepted) {
+            return {
+                success: true,
+                details: isEmailSent
+            }
+        } else {
+            return {
+                success: false,
+                details: isEmailSent
+            }     
+        }
         
    } else {
     return {

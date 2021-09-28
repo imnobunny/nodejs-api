@@ -110,76 +110,55 @@ router.post('/register', (req, res) => {
     const username = req.body.username;
     const password = req.body.password
    
-    try {
-        if (username && password) {
-        
-            if (!validator.validate(username)) return res.json({ success: false, message: "Invalid Email Address."})
-    
-            bcrypt.hash(password, 10, (err, password) => {
-                    
-                const newUser = new User({
-                    username,
-                    password
-                });
-    
-                newUser.save().then(() => {
-                    // generate a token to use for verifying your email address
-                   jwt.sign({ email: username }, process.env.SECRET_KEY, {expiresIn: '1hr'}, (err, token) => {
+   try {
+        // validate request
+        if (!validator.validate(username)) return res.json({ success: false, message: "Invalid Email Address."});
 
-                        if (err) return res.json({ success: false, message: err });
-
-                       const link = process.env.API_LINK + '/confirm/email/' + token;  
-                       const test = sendEmail.SendVerifyEmail(username, link);
-
-                       console.log('testtt', test)
-
-                      
-                        // Send Verify Email
-                        // sendEmail.SendVerifyEmail(username, link).then((sent) => {
-
-                        //     console.log('------------------------------------------');
-                        //     console.log(sent);
-
-                        //     if (!sent.success) {
-
-                        //         // if sending of email verification failed, send notify the admin and send also the 
-                        //         // username and the error description
-                        //         sendEmail.SendErrorToAdmin(username, sent);
-                        //         // then notify the user that the admin will contact him/her shortly or the backend inform the admin about the
-                        //         // issue
-                        //         return res.json({ success: false, message: "Oops! An error occured while sending the email verification but don't worry, the admin will contact you shortly! "})
-                        //     }
-                        //     // if not error, return success.
-                        //     return res.json({
-                        //         success: true,
-                        //         message: "Pending account. Please verify your email"
-                        //     });
-
-                        // }).catch(err => {
-                        //     console.log('Error sending email::', err)
-                        // })
-                        
-                    });
-    
-                }).catch(err => {
-                    res.status(400).json({
-                        success: false, 
-                        message: err,
-                    })
-                })
+        bcrypt.hash(password, 10, (err, password) => {
+            // new user details
+            const newUser = new User({
+                username,
+                password
             });
-        } else {
-            // If no username or password found.
-            return res.json({ success: false, message: "Username and Password are required. "})
-        }
-    } catch (err) {
+            // save new user
+            newUser.save().then(() => {
 
-        res.status(400).json({
-            success: false, 
-            message: err
+                jwt.sign({ email: username }, process.env.SECRET_KEY, {expiresIn: '1hr'}, (err, token) => {
+                    // error in token
+                    if (err) return res.json({ success: false, message: err });
+                    // verify link
+                    const link = process.env.API_LINK + '/confirm/email/' + token;  
+        
+                    sendEmail.SendVerifyEmail(username, link)
+                    .then((result) => { 
+                        if (result.success) {
+                            console.log('---------------------------------------------');
+                            console.log(result.details);
+                            console.log('---------------------------------------------');
+                            return res.json({
+                                success: true,
+                                message: "Pending account. Please verify your email"
+                            });
+                            
+                        } else {
+                            // report an email to admin
+                            sendEmail.SendErrorToAdmin(username, sent);
+                            return (
+                                res.json({ 
+                                    success: false, 
+                                    message: "Oops! An error occured while sending the email verification but don't worry, the admin will contact you shortly! "
+                                })
+                            );
+                        }
+                    }).catch((err) => console.log('Error sending email::', err));
+                });
+            });
         });
-
-    }
+          
+   } catch (err) {
+        console.log('Error in Register Route::', err)
+   }
+      
 });
 
 router.get('/confirm/email/:token', (req, res) => {
