@@ -147,7 +147,47 @@ const SendErrorToAdmin = async(email, error) => {
     }
 }
 
-const SendDFAJobs = async(email, appointments=[], siteName) => {
+
+const SendEmailToAdmin = async() => {
+    try {
+
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: process.env.ADMIN_EMAIL,
+            subject: "Hello, Your Nodemailer is Working ROCKSTARRR! 👋!",
+            template: 'AdminReminder',
+        };
+        
+        // Email Template for New User
+        const isEmailSent = await transporter.sendMail(mailOptions)
+        .catch((err) => {
+            return {
+                success: false, 
+                err
+            }
+        })
+
+        if (isEmailSent.accepted) {
+            return {
+                success: true,
+                details: isEmailSent
+            }
+        } else {
+            return {
+                success: false,
+                details: isEmailSent
+            }     
+        }
+
+    } catch (err) {
+        return {
+            success: false, 
+            message: err
+        }
+    }
+}
+
+const SendDFAJobs = async(email, name, siteName, appointments=[]) => {
     try {
     
      if (email && appointments) {
@@ -157,7 +197,7 @@ const SendDFAJobs = async(email, appointments=[], siteName) => {
          const mailOptions = {
              from: process.env.EMAIL,
              to: email,
-             subject: `DFA Open new slot for ${siteName || "choosen site"} 👋!`,
+             subject: `🚨 ${name}, DFA opens new slot for ${siteName || "choosen site"}!! 🚨`,
              template: 'DFACronJob',
              context: {
                 appointments: appointments
@@ -200,5 +240,6 @@ const SendDFAJobs = async(email, appointments=[], siteName) => {
 module.exports = {
     SendVerifyEmail,
     SendErrorToAdmin,
-    SendDFAJobs
+    SendDFAJobs,
+    SendEmailToAdmin,
 };

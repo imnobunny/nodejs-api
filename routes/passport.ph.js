@@ -76,11 +76,11 @@ router.post('/appointment/timeslot', (req, res) => {
 
 router.post('/subscribe', (req, res) => {
     try {
-        const { email, countryId, regionId, slot, siteId } = req.body;
+        const { email, countryId, regionId, slot, siteId, name, siteName } = req.body;
 
         // validate request
-        if (!email || !validator.validate(email)  || !countryId || !regionId || !slot || !siteId) {
-            return res.json({ success: false, message: "Incomplete parameters"})
+        if (!email || !validator.validate(email)  || !countryId || !regionId || !slot || !siteName || !name ) {
+            return res.json({ success: false, message: "Please check your parameters"})
         }
 
         const newSubcription = new DFA({
@@ -88,7 +88,9 @@ router.post('/subscribe', (req, res) => {
             countryId,
             regionId,
             slot,
-            siteId
+            siteId,
+            name,
+            siteName
         });
 
         newSubcription.save()

@@ -5,6 +5,14 @@ const DFASchema = mongoose.Schema({
         type: String,
         required: true,
     },
+    name: {
+        type: String,
+        required: true,
+    },
+    siteName: {
+        type: String,
+        required: true,
+    },
     regionId: {
         type: Number,
         required: true,

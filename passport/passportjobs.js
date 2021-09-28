@@ -6,22 +6,22 @@ const sendEmail = require("../email/sendEmail");
 const checkSubscriptions = () => {
     DFA.find().then((subs) => {
        
-        subs.map(sub => {
-            const { email, regionId, countryId, slot, siteId} = sub;
+        
+        (subs || []).map(sub => {
+            const { email, regionId, countryId, slot, siteId, name, siteName} = sub;
 
-            console.log('******************************');
             console.log('email:', email);
             console.log('regionId:', regionId);
             console.log('countryId:', countryId);
             console.log('slot', slot);
             console.log('siteId', siteId);
-            
-            
+            const fromDate = moment().format("YYYY-MM-DD");
+            console.log('fromDate:', fromDate)
             axios({ 
                 method: 'POST',
                 url: 'https://www.passport.gov.ph/appointment/timeslot/available',
                 data: {
-                    fromDate: "2021-09-28",
+                    fromDate,
                     toDate: "2022-03-31",
                     siteId,
                     requestedSlots: slot 
@@ -36,7 +36,7 @@ const checkSubscriptions = () => {
                         if (appointment.IsAvailable) {
                             console.log('new opens slots')
                             // notify subscriber
-                            sendEmail.SendDFAJobs(email, appointments, "Ayala").then((result) => {
+                            sendEmail.SendDFAJobs(email, name, siteName, appointments).then((result) => {
                                 console.log('Is Email Sent?', result.success);
                             }).catch((err) => {
                                 console.log('Is email sent?', err);
@@ -46,8 +46,14 @@ const checkSubscriptions = () => {
                             console.log('No open slots', appointment);
                         }
 
+                        // sendEmail.SendDFAJobs(email, name, siteName, appointments).then((result) => {
+                        //     console.log('Is Email Sent?', result.success);
+                        // }).catch((err) => {
+                        //     console.log('Is email sent?', err);
+                        // })
+
                         
-                    })
+                    });
                 }
             }).catch((err) => {
                 console.log('error in passport jobs', err)

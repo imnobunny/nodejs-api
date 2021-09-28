@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const nodeCron = require("node-cron");
-
+const sendEmail = require("./email/sendEmail");
 const passportjobs = require("./passport/passportjobs");
 
 require('dotenv').config();
@@ -26,9 +26,14 @@ connection.once('open', () => {
 });
 
 // Jobs
-nodeCron.schedule('* * * * *', () => {
-    console.log('CRON-------------------------------------------');
+nodeCron.schedule('*/30 * * * *', () => {
+    console.log('RUNNING CRON-------------------------------------------');
     passportjobs.checkSubscriptions();
+});
+
+nodeCron.schedule('0 1 * * *', () => {
+    console.log('RUNNING CRON JOB DAY-------------------------------------------');
+    sendEmail.SendEmailToAdmin();
 });
 
 // ROUTES
