@@ -29,7 +29,6 @@ const checkSubscriptions = () => {
             }).then((result) => {
                 if (result.status === 200) {
                     const appointments = result.data;
-                    console.log('appointments',appointments)
                     appointments.map((appointment) => {
                         let appointmentDate = moment(appointment.AppointmentDate).format('MM/DD/YYYY');
                         appointment.AppointmentDate = appointmentDate;
