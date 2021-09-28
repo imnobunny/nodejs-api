@@ -29,20 +29,25 @@ const checkSubscriptions = () => {
             }).then((result) => {
                 if (result.status === 200) {
                     const appointments = result.data;
-                    console.log('appointments',appointments )
+                    console.log('appointments',appointments)
                     appointments.map((appointment) => {
                         let appointmentDate = moment(appointment.AppointmentDate).format('MM/DD/YYYY');
-                        // if (appointment.IsAvailable) {
-                        //     console.log('new opens slots')
-                        // } else {
-                        //     console.log('No Available timeslots yet', )
-                        // }
-                        console.log('datetest', appointmentDate)
-                        const testemail = sendEmail.SendDFAJobs(email, appointments).then((result) => {
-                            console.log('Is email sent?', result);
-                        }).catch((err) => {
-                            console.log('Is email sent?', result);
-                        })
+                        appointment.AppointmentDate = appointmentDate;
+                       
+                        if (appointment.IsAvailable) {
+                            console.log('new opens slots')
+                            // notify subscriber
+                            sendEmail.SendDFAJobs(email, appointments, "Ayala").then((result) => {
+                                console.log('Is Email Sent?', result.success);
+                            }).catch((err) => {
+                                console.log('Is email sent?', err);
+                            })
+
+                        } else {
+                            console.log('No open slots', appointment);
+                        }
+
+                        
                     })
                 }
             }).catch((err) => {

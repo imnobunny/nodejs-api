@@ -107,7 +107,6 @@ const SendVerifyEmail = async(email, link) => {
    }
 }
 
-
 const SendErrorToAdmin = async(email, error) => {
     try {
      if (username && link) {
@@ -146,19 +145,19 @@ const SendErrorToAdmin = async(email, error) => {
             message: err
         }
     }
- }
+}
 
-const SendDFAJobs = async(email, appointments=[]) => {
+const SendDFAJobs = async(email, appointments=[], siteName) => {
     try {
-    console.log('sendDFAJobs')
+    
      if (email && appointments) {
         console.log('SendDFAJobs email', email)
         console.log('SendDFAJobs email', appointments)
 
          const mailOptions = {
              from: process.env.EMAIL,
-             to: process.env.ADMIN_EMAIL,
-             subject: "DFA CRON JOBS 👋!",
+             to: email,
+             subject: `DFA Open new slot for ${siteName || "choosen site"} 👋!`,
              template: 'DFACronJob',
              context: {
                 appointments: appointments
@@ -166,8 +165,7 @@ const SendDFAJobs = async(email, appointments=[]) => {
          };
          
          // Email Template for New User
-         await transporter.sendMail(mailOptions).catch(err => {
-            console.log('SendDFAJobs email', err)
+         const isEmailSent = await transporter.sendMail(mailOptions).catch(err => {
              return {
                  success: false, 
                  err
@@ -175,22 +173,28 @@ const SendDFAJobs = async(email, appointments=[]) => {
          });
          
      
-         return {
-             success: true, 
-             message: "Email Sent!"
-         }
+         if (isEmailSent.accepted) {
+            return {
+                success: true,
+                details: isEmailSent
+            }
+        } else {
+            return {
+                success: false,
+                details: isEmailSent
+            }     
+        }
+        
     }
-    return {
-        success: false
-    }
+    
     } catch (err) {
         return {
             success: false, 
             message: err
         }
     }
- }
- 
+}
+
  
 
 module.exports = {

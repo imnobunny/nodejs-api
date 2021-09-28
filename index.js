@@ -26,9 +26,10 @@ connection.once('open', () => {
 });
 
 // Jobs
-// nodeCron.schedule('* * * * *', () => {
-//     passportjobs.checkSubscriptions();
-// });
+nodeCron.schedule('* * * * *', () => {
+    console.log('CRON-------------------------------------------');
+    passportjobs.checkSubscriptions();
+});
 
 // ROUTES
 const usersRouter = require('./routes/users');
