@@ -5,18 +5,21 @@ const sendEmail = require("../email/sendEmail");
 
 const checkSubscriptions = () => {
     DFA.find().then((subs) => {
-       
-        
+    
         (subs || []).map(sub => {
-            const { email, regionId, countryId, slot, siteId, name, siteName} = sub;
 
+            const { email, regionId, countryId, slot, siteId, name, siteName } = sub;
+
+            console.log('-------------------------------------------');
             console.log('email:', email);
             console.log('regionId:', regionId);
             console.log('countryId:', countryId);
             console.log('slot', slot);
             console.log('siteId', siteId);
             const fromDate = moment().format("YYYY-MM-DD");
-            console.log('fromDate:', fromDate)
+            console.log('fromDate:', fromDate);
+            console.log('-------------------------------------------');
+
             axios({ 
                 method: 'POST',
                 url: 'https://www.passport.gov.ph/appointment/timeslot/available',
@@ -29,10 +32,11 @@ const checkSubscriptions = () => {
             }).then((result) => {
                 if (result.status === 200) {
                     const appointments = result.data;
+                    console.log(`result for ${email}::`, appointments)
                     appointments.map((appointment) => {
                         let appointmentDate = moment(appointment.AppointmentDate).format('MM/DD/YYYY');
                         appointment.AppointmentDate = appointmentDate;
-                       
+                        console.log('appointment.IsAvailable', appointment)
                         if (appointment.IsAvailable) {
                             console.log('new opens slots')
                             // notify subscriber
@@ -43,7 +47,9 @@ const checkSubscriptions = () => {
                             })
 
                         } else {
+                            console.log('-------------------------------------------');
                             console.log('No open slots', appointment);
+                            console.log('-------------------------------------------');
                         }
 
                         // sendEmail.SendDFAJobs(email, name, siteName, appointments).then((result) => {
