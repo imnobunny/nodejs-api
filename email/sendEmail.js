@@ -235,6 +235,53 @@ const SendDFAJobs = async(email, name, siteName, appointments=[]) => {
     }
 }
 
+
+const SendDFAStatus = async(email, subName, dfaStatus) => {
+    try {
+    
+        if (email && dfaStatus) {
+   
+            const mailOptions = {
+                from: process.env.EMAIL,
+                to: email,
+                subject: `${subName}, FYI.. 😔`,
+                template: 'DFAStatus',
+                context: {
+                    dfaStatus
+                }
+            };
+            
+            // Email Template for New User
+            const isEmailSent = await transporter.sendMail(mailOptions).catch(err => {
+                return {
+                    success: false, 
+                    err
+                }
+            });
+            
+        
+            if (isEmailSent.accepted) {
+               return {
+                   success: true,
+                   details: isEmailSent
+               }
+           } else {
+               return {
+                   success: false,
+                   details: isEmailSent
+               }     
+           }
+           
+       }
+       
+       } catch (err) {
+           return {
+               success: false, 
+               message: err
+           }
+       }
+}
+
  
 
 module.exports = {
@@ -242,4 +289,5 @@ module.exports = {
     SendErrorToAdmin,
     SendDFAJobs,
     SendEmailToAdmin,
+    SendDFAStatus
 };

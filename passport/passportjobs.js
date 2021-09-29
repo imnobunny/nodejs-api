@@ -63,7 +63,7 @@ const checkSubscriptions = () => {
                 }
             }).catch((err) => {
                 console.log('DFA Status:', err.response.statusText);
-
+                sendEmail.SendDFAStatus(email, name, err.response.statusText);
             }); 
         });
     })
