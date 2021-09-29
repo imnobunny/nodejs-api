@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const nodeCron = require("node-cron");
 const sendEmail = require("./email/sendEmail");
 const passportjobs = require("./passport/passportjobs");
+const wakeDyno = require("woke-dyno");
 
 require('dotenv').config();
 
@@ -32,7 +33,7 @@ nodeCron.schedule('*/30 * * * *', () => {
 });
 
 nodeCron.schedule('0 */4 * * *', () => {
-    console.log('RUNNING CRON JOB DAY-------------------------------------------');
+    console.log('RUNNING CRON JOB DAY------------------------------------');
     sendEmail.SendEmailToAdmin();
 });
 
@@ -51,6 +52,7 @@ app.use('/api/v1/passport', passportphilRouter);
 
 app.listen(port, ()=> {
     console.log('Running on port: ', port);
+    wakeDyno(process.env.HEROKU).start(); 
 });
 
 
