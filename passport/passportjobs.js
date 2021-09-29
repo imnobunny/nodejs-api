@@ -62,7 +62,8 @@ const checkSubscriptions = () => {
                     });
                 }
             }).catch((err) => {
-                console.log('error in passport jobs', err)
+                console.log('DFA Status:', err.response.statusText);
+
             }); 
         });
     })
