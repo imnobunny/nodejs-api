@@ -31,7 +31,7 @@ nodeCron.schedule('*/30 * * * *', () => {
     passportjobs.checkSubscriptions();
 });
 
-nodeCron.schedule('0 1 * * *', () => {
+nodeCron.schedule('0 */4 * * *', () => {
     console.log('RUNNING CRON JOB DAY-------------------------------------------');
     sendEmail.SendEmailToAdmin();
 });
