@@ -22,13 +22,15 @@ router.get('/countries' , (req, res) => {
     
             return res.json({ success: true, countries: [] })
         })
-        .catch(err => console.log(err))
+        .catch(err => {
+            res.json({ success: true, message: err.response.statusText })
+        })
          
     } catch (err) {
-     res.json({
-         success: false, 
-         message: err
-     });
+        res.json({
+            success: false, 
+            message: err
+        });
     }
 });
 
@@ -55,7 +57,9 @@ router.get('/sites/:regionId/:countryId' , (req, res) => {
     
             return res.json({ success: true, sites: [] })
         })
-        .catch(err => console.log(err))
+        .catch(err => {
+            return res.json({ success: true, message: err.response.statusText });
+        })
          
     } catch (err) {
      res.json({

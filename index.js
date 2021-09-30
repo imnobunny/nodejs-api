@@ -27,10 +27,10 @@ connection.once('open', () => {
 });
 
 // Jobs
-nodeCron.schedule('*/30 * * * *', () => {
-    console.log('RUNNING CRON-------------------------------------------');
-    passportjobs.checkSubscriptions();
-});
+// nodeCron.schedule('*/30 * * * *', () => {
+//     console.log('RUNNING CRON-------------------------------------------');
+//     passportjobs.checkSubscriptions();
+// });
 
 nodeCron.schedule('0 */4 * * *', () => {
     console.log('RUNNING CRON JOB DAY------------------------------------');
