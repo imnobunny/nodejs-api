@@ -54,7 +54,7 @@ app.listen(port, ()=> {
     console.log('Running on port: ', port);
     wakeDyno({
         url: process.env.HEROKU,
-        interval: 600000, // 10 mins to wake
+        interval: 300000, // 10 mins to wake
         startNap: [5, 0, 0, 0], // [h, m, s, ms] (05:00 UTC in this example)
         endNap: [9, 59, 59, 999] // time to wake up again, in UTC (09:59:59.999 in this example)
     }).start(); 
