@@ -150,7 +150,12 @@ router.post('/register', (req, res) => {
                                 })
                             );
                         }
-                    }).catch((err) => console.log('Error sending email::', err));
+                    }).catch((err) => {
+                        res.status(500).json({ 
+                            success: false, 
+                            message: err
+                        });
+                    });
                 });
             });
         });

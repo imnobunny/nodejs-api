@@ -1,11 +1,10 @@
 const nodemailer = require("nodemailer");
 const hbs = require('nodemailer-express-handlebars');
 const { google } = require("googleapis");
+const dotenv = require('dotenv');
+dotenv.config();
 
-const REFRESH_TOKEN = "1//04knuthmfixTTCgYIARAAGAQSNwF-L9IrNAXWKoU4ErLoUwghmQygV0-NqZe8uGJWgQyOKjJq4KhZgvta_GMGrgSkXZSbY5Im3LI";
-const CLIENT_ID="962254439349-qanau0qc6fr8uq173n346ci31j2apf7a.apps.googleusercontent.com";
-const CLIENT_SECRET="SZkiXiQy5UBo1KF2LBDfAV-Y"
-const REDIRECT_URI="https://developers.google.com/oauthplayground"
+const { CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, EMAIL, REFRESH_TOKEN } = process.env;
 
 const oAuth2Client = new google.auth.OAuth2(
     CLIENT_ID,
@@ -32,7 +31,7 @@ let transporter;
         port: 465,
         auth: {
             type: "OAuth2",
-            user: process.env.EMAIL,
+            user: EMAIL,
             clientId: CLIENT_ID,
             clientSecret: CLIENT_SECRET,
             refreshToken: REFRESH_TOKEN,

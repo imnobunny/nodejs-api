@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const nodeCron = require("node-cron");
 const sendEmail = require("./email/sendEmail");
 const passportjobs = require("./passport/passportjobs");
-const wakeDyno = require("woke-dyno");
+//const wakeDyno = require("woke-dyno");
 
 require('dotenv').config();
 
@@ -52,12 +52,12 @@ app.use('/api/v1/passport', passportphilRouter);
 
 app.listen(port, ()=> {
     console.log('Running on port: ', port);
-    wakeDyno({
-        url: process.env.HEROKU,
-        interval: 20000, // 10 mins to wake
-        startNap: [5, 0, 0, 0], // [h, m, s, ms] (05:00 UTC in this example)
-        endNap: [9, 59, 59, 999] // time to wake up again, in UTC (09:59:59.999 in this example)
-    }).start(); 
+    // wakeDyno({
+    //     url: process.env.HEROKU,
+    //     interval: 20000, // 10 mins to wake
+    //     startNap: [5, 0, 0, 0], // [h, m, s, ms] (05:00 UTC in this example)
+    //     endNap: [9, 59, 59, 999] // time to wake up again, in UTC (09:59:59.999 in this example)
+    // }).start(); 
 });
 
 
