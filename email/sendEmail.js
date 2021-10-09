@@ -56,47 +56,62 @@ let transporter;
 
 })();
 
-const SendVerifyEmail = async(email, link) => {
-   try {
-       
-    if (email && link) {
+/**
+ * SEND EMAIL TO USER
+ * @param {String} email - user valid email address
+ * @param {String} link - the front end link + the generated token 
+ * @param {*} action  - default to "verify_email"
+ * @returns obj
+ */
+const SendEmailToUser = async(email, link, action="verify_email") => {
+    try {
+        if (email && link) {
+            // Default values
+            let subject = "Hello 👋!";
+            let template = "VerifyEmail";
 
-        const mailOptions = {
-            from: process.env.EMAIL,
-            to: email,
-            subject: "Hello 👋!",
-            template: 'VerifyEmail',
-            context: {
-              verify_link: link
+            if (action === "reset_link") {
+                subject = "Did you forgot your password?";
+                template="ResetLink";
             }
-        };
-        
-        // Email Template for New User
-        const isEmailSent = await transporter.sendMail(mailOptions)
-        .catch((err) => {
-            return {
-                success: false, 
-                err
-            }
-        })
 
-        if (isEmailSent.accepted) {
-            return {
-                success: true,
-                details: isEmailSent
+
+            const mailOptions = {
+                from: process.env.EMAIL,
+                to: email,
+                subject,
+                template,
+                context: {
+                    link
+                }
+            };
+            
+            // Email Template for New User
+            const isEmailSent = await transporter.sendMail(mailOptions)
+            .catch((err) => {
+                return {
+                    success: false, 
+                    err
+                }
+            })
+
+            if (isEmailSent.accepted) {
+                return {
+                    success: true,
+                    details: isEmailSent
+                }
+            } else {
+                return {
+                    success: false,
+                    details: isEmailSent
+                }     
             }
+            
         } else {
             return {
-                success: false,
-                details: isEmailSent
-            }     
+                success: false
+            }
         }
-        
-   } else {
-    return {
-        success: false
-    }
-   }
   
    } catch (err) {
        return {
@@ -105,7 +120,7 @@ const SendVerifyEmail = async(email, link) => {
        }
    }
 }
-
+// Send Error Support to the Admin
 const SendErrorToAdmin = async(email, error) => {
     try {
      if (username && link) {
@@ -145,8 +160,7 @@ const SendErrorToAdmin = async(email, error) => {
         }
     }
 }
-
-
+// Send An Email to Admin
 const SendEmailToAdmin = async() => {
     try {
 
@@ -185,7 +199,7 @@ const SendEmailToAdmin = async() => {
         }
     }
 }
-
+// Send DFA schedules 
 const SendDFAJobs = async(email, name, siteName, appointments=[]) => {
     try {
     
@@ -233,8 +247,7 @@ const SendDFAJobs = async(email, name, siteName, appointments=[]) => {
         }
     }
 }
-
-
+// Send DFA Status in case DFA is down
 const SendDFAStatus = async(email, subName, dfaStatus) => {
     try {
     
@@ -281,10 +294,9 @@ const SendDFAStatus = async(email, subName, dfaStatus) => {
        }
 }
 
- 
 
 module.exports = {
-    SendVerifyEmail,
+    SendEmailToUser,
     SendErrorToAdmin,
     SendDFAJobs,
     SendEmailToAdmin,

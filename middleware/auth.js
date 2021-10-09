@@ -12,7 +12,7 @@ const verifyToken = (req, res, next) => {
     } else {
         return res.status(401).json({
             success: false,
-            message: "Not Authorized to this resources"
+            message: "Access Not Authorized"
         });
     }
 
@@ -30,7 +30,7 @@ const verifyToken = (req, res, next) => {
                 // check the session db if the user id exists
                 Session.findOne({ userId }).then((ses) => {
                     // if the userId not exists
-                    if (!ses || ses.token !== token) return res.status(401).json({ success: false, message: "Not Authorized to this resources" });
+                    if (!ses || ses.token !== token) return res.status(401).json({ success: false, message: "Access Not Authorized" });
                      // return if success decoding
                      return next();
                 });
@@ -39,7 +39,7 @@ const verifyToken = (req, res, next) => {
                 //401 is invalid token , not authorize to access api
                 return res.status(401).json({
                     success: false,
-                    message: "Not Authorized to this resources"
+                    message: "Access Not Authorized"
                 });
             }
         });
