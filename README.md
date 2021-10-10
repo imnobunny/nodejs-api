@@ -118,4 +118,41 @@ This token will be used in accessing protected endpoints and its only good for 1
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNhaXJhYnVubnllc3Bpbm9AeWFob28uY29tIiwidXNlcmlkIjoiNjE2MTlkOGVjNzQxZDIzMjYxNmU0ZTc1IiwiaWF0IjoxNjMzODUyMTg3LCJleHAiOjE2MzM4NTU3ODd9.EJg6SV-AP1Xyjon8HY81ETzJafCaMGihUvTqds2coZE"
 }
 ```
+---
+User Logout
+```js
+/*@description: Revoke access to the endpoint
+* @description: POST method 
+* @parameter {String} id - the user objID
+*/
+
+var axios = require('axios');
+var data = JSON.stringify({
+  "id": "61619d8ec741d232616e4e75"
+});
+
+var config = {
+  method: 'post',
+  url: 'https://secure-crag-48354.herokuapp.com/api/v1/logout',
+  headers: { 
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNhaXJhYnVubnllc3Bpbm9AeWFob28uY29tIiwidXNlcmlkIjoiNjE2MTlkOGVjNzQxZDIzMjYxNmU0ZTc1IiwiaWF0IjoxNjMzODUyMTg3LCJleHAiOjE2MzM4NTU3ODd9.EJg6SV-AP1Xyjon8HY81ETzJafCaMGihUvTqds2coZE', 
+    'Content-Type': 'application/json'
+  },
+  data : data
+};
+
+axios(config)
+.then(function (response) {
+  console.log(JSON.stringify(response.data));
+})
+.catch(function (error) {
+  console.log(error);
+});
+```
+```json
+{
+    "success": true
+}
+```
+
 
