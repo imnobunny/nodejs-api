@@ -217,7 +217,7 @@ router.post('/forgot-password', (req, res) => {
             // Is the user account verified?
             if (!user.isVerified) res.json({ success: false, message: "Your account is not verified yet. Please verify your account first"});
 
-            jwt.sign({ username: user._id }, process.env.SECRET_KEY, {expiresIn: '15m'}, (err, token) => {
+            jwt.sign({ username: user._id }, process.env.SECRET_KEY, {expiresIn: '5m'}, (err, token) => {
                 if (err) res.status(400).json({ success: false, message: "No email found"});
                 
 
@@ -273,37 +273,29 @@ router.post('/reset-password', (req, res) => {
             });
         }
 
-        //Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im5ld1VzZXJUZXN0IiwidXNlcmlkIjoiNjEzNzczNGEwNzUzNTU0Yzk1NDA0NTY0IiwiaWF0IjoxNjMxNjMxMzU3LCJleHAiOjE2MzE2MzQ5NTd9.5YsH3t1tiYnvH9sFoIxpjfFRldALTZO81n6fHL0HDns
-
-        if (!token) return res.json({ success: false, message: "Incomplete Parameter"});
+        if (!token || password) return res.json({ success: false, message: "Incomplete Parameter"});
        
         // check if the JWT expired
         jwt.verify(token, process.env.SECRET_KEY, (err, token) => {
            
             if (err) return res.status(401).json({ success: false, message: "Access Not Authorized"});
            
-            console.log(token)
             // update the password of the username objId
             const { username } = token;
 
             bcrypt.hash(password, 10, (err, hash) => {
                 if (err) return res.status(400).json({ success: false, message: err });
-    
-                User.findOneAndUpdate(hash, req.body, {upsert: true}, function(err, doc) {
+        
+                req.body.password = hash;
+                User.findOneAndUpdate( username, req.body, {upsert: true}, function(err, doc) {
            
                     if (err) return res.status(400).json({ success: false, message: err });
                     return res.json({ success: true });
                 });
     
             });
-
-            res.status(200).json({ success: true });
             
         });
-        // console.log('decoded', decoded)
-        // // username  - username objID
-        // const { username } = decoded;
-
 
     } catch (err) {
         res.status(500).json({
