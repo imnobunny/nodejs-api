@@ -1,7 +1,7 @@
-# red
+# NodeJS-api
 
-backend of an untitled project
-stacks: NodeJs and Express.
+
+stacks: NodeJs, Express and with google mail api.
 ```js
 https://secure-crag-48354.herokuapp.com/api/v1
 ```
