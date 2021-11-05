@@ -1,7 +1,10 @@
 const router = require('express').Router();
 const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
-const auth = require("../middleware/auth");
+const auth = require('../middleware/auth');
+const UserDetails = require('../models/userDetails.model');
+const { decodeToken } = require('../helper/index');
+
 /**
  * @description GET A SPECIFIC USER BY ID
  */
@@ -140,6 +143,47 @@ router.patch('/update/:_id', auth, (req, res) => {
    } catch (err) {
         res.status(400).json({ success: false, message: err });
    }
+});
+
+router.get('/details', auth, (req, res) => {
+    try {
+        // get the details of the userId
+        res.status(200).json({ success: true, message: 'no data to fetched yet' });
+    } catch(err) {
+        res.status(400).json({ success: false, message: err });
+    }
+});
+
+router.post('/add/details', auth, async(req, res) => {
+    try {
+        const { authorization } = req.headers;
+        const { username, firstname, lastname, country, birthDate } = req.body;
+
+       const decoded = await decodeToken(authorization);
+    
+        // validate data
+        if (!username || !firstname || !lastname || !country || !birthDate) return res.status(200).json({ success: false, message: "Incomplete parameters" });
+       
+        const addUserDetails = new UserDetails({
+            userId: decoded.userid,
+            username,
+            firstname,
+            lastname,
+            country, 
+            birthDate
+        });
+
+        addUserDetails.save()
+        .then(() => {
+            res.status(200).json({ success: true });
+        })
+        .catch((err) => {
+            res.status(400).json({ success: false, message: err });
+        });
+        
+    } catch (err) {
+        res.status(400).json({ success: false, message: err });
+    }
 });
 
 
