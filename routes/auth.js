@@ -6,64 +6,58 @@ const jwt = require('jsonwebtoken');
 const auth = require("../middleware/auth");
 const validator = require("email-validator");
 const sendEmail = require("../email/sendEmail");
+const { passwordBcrypt, generateTokenSignin} = require("../helper/index");
 
-router.post('/login', (req, res) => {
+router.post('/login', async(req, res) => {
     try {
-        const username = req.body.username;
-        const password = req.body.password;
-    
-        function sendRes(success, message, status=200){
-            return res.status(status).json({
-                success,
-                message
-            });
-        }
-        // first validate if the username exists
-        User.findOne({ username }).then(user => {
-            // return false if username is incorrect / not exists.
-            if (!user) return sendRes(false, 'Username is incorrect');
+        const { username, password } = req.body;
+        // validation
+        if (!username || !password ) return res.json({ success: false, message: "Missing username or password"});
 
-            if(!user.isVerified) return sendRes(false, 'Please verify your account.');
-            // verify passwords
-            bcrypt.compare(password, user.password, (err, res)=>{
-                // passwords are not the same
-                if (!res || err) return sendRes(false, 'Password is incorrect');
-                // check the session if the userId exists and has token;
-                Session.findOne({ userId: user._id }).then((session) => {
-                    if (session) {
-                        // remove the token
-                        console.log('session', session)
-                        Session.deleteOne({ userId: user._id }).then((res) => {
-                            console.log('Deleted existing token', res);
-                        }).catch((err) => console.log('Error in deleting the existing token', err));
-                    }
-                    //passwords are the same, assign token
-                    jwt.sign({
-                        username,
-                        userid: user._id
-                    }, process.env.SECRET_KEY, {expiresIn: '1hr'}, (err, token)=> {
-                        // if generating token is err
-                        if (err) sendRes(false, err);
-                        // save new token and its user id to session;
-                        const newSession = new Session({
-                            userId: user._id,
-                            token
-                        });
-            
-                        newSession.save().then(() => {
-                            sendRes(true, token);
-                        }).catch(err =>  sendRes(false, err, 400)); 
-                    });
+        // check if the username available
+        const fetchedUser = await User.findOne({ username }).then(user => user).catch(err => err);
 
-                });
-            }); 
+        // if no user found then return success false
+        if (!fetchedUser) return res.json({ success: false, message: "Missing username or password"}); 
+        
+        // check if the user is isVerified
+        if (!fetchedUser.isVerified) return res.json({ success: false, message: "User account not yet Verified."}); 
+        
+        //check if passwords are the same
+        const isPasswordMatch = await passwordBcrypt("compare", password, fetchedUser.password);
 
-        }).catch(err => {
-            sendRes(false, err, 400);
+        // if passwords are not match
+        if (!isPasswordMatch) res.json({ success: false, message: "Password is incorrect."});
+
+        // check the session if the userId exists and has token;
+        const userId = fetchedUser._id.toString();
+        // generate token valid for 1hr.
+        const generatedToken = await generateTokenSignin({ username, userId });
+
+        // if failed generating a token
+        if (!generatedToken.success) res.json({ success: false, message: generatedToken.err });
+
+        const hasSession = await Session.findOne({ userId }).then(session=> session).catch(err => err);
+
+        if (hasSession) {
+            // delete the existing session
+            await Session.deleteOne({ userId }).then(result => result).catch(error => error);
+        } 
+        const { token } = generatedToken;
+        const newSession = new Session({
+            userId,
+            token
         });
+
+        const isNewSessionAdded = await newSession.save().then(res => res).catch(err => err); 
+
+        if (!isNewSessionAdded.userId) return res.json({ success: false, message: isNewSessionAdded });
+
+        return res.json({ success: false, token });
+    
     } catch(err) {
         res.status(400).json({
-            success: false,
+            success1: false,
             message: err
         });
     }
