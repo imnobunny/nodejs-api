@@ -1,7 +1,5 @@
-const JWT = require("jsonwebtoken");
 const Session = require("../models/session.model");
 const { decodeToken } = require("../helper/index");
-const { session } = require("passport");
 
 const verifyToken = async(req, res, next) => {
     try {        
@@ -9,21 +7,21 @@ const verifyToken = async(req, res, next) => {
         // headerAuth and userId are required
         if (!headerAuth) {
             return res.status(401).json({
-                success133: false,
+                success: false,
                 message: "Access Not Authorized"
             });
         }
 
         // decode the token 
         const token_valid = await decodeToken(headerAuth).then(data => data).catch(err => err);
-       
+        console.log('Is token Valid:', token_valid)
         if (!token_valid.success) return res.status(400).json({ success: false, message: token_valid.err });
 
-        const { userid, token } = token_valid.decoded
+        const { userId, token } = token_valid.decoded;
 
-        if (userid) {
+        if (userId) {
             // check the session db if the user id exists
-            const  hasSession = await Session.findOne({ userid }).then(user => user).catch(err => err);
+            const  hasSession = await Session.findOne({ userId }).then(user => user).catch(err => err);
             
             if (!hasSession || hasSession.token !== token) return res.status(401).json({ success: false, message: "Access Not Authorized" });
              // if user has session

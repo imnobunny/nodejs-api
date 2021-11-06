@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const auth = require("../middleware/auth");
 const validator = require("email-validator");
 const sendEmail = require("../email/sendEmail");
-const { passwordBcrypt, generateTokenSignin} = require("../helper/index");
+const { passwordBcrypt, generateTokenSignin, decodeToken } = require("../helper/index");
 
 router.post('/login', async(req, res) => {
     try {
@@ -24,7 +24,7 @@ router.post('/login', async(req, res) => {
         if (!fetchedUser.isVerified) return res.json({ success: false, message: "User account not yet Verified."}); 
         
         //check if passwords are the same
-        const isPasswordMatch = await passwordBcrypt("compare", password, fetchedUser.password);
+        const isPasswordMatch = await passwordBcrypt(password, "compare", fetchedUser.password);
 
         // if passwords are not match
         if (!isPasswordMatch) res.json({ success: false, message: "Password is incorrect."});
@@ -44,6 +44,7 @@ router.post('/login', async(req, res) => {
             await Session.deleteOne({ userId }).then(result => result).catch(error => error);
         } 
         const { token } = generatedToken;
+        // save new session
         const newSession = new Session({
             userId,
             token
@@ -53,7 +54,7 @@ router.post('/login', async(req, res) => {
 
         if (!isNewSessionAdded.userId) return res.json({ success: false, message: isNewSessionAdded });
 
-        return res.json({ success: false, token });
+        return res.json({ success: true, token });
     
     } catch(err) {
         res.status(400).json({
@@ -63,22 +64,21 @@ router.post('/login', async(req, res) => {
     }
 });
 
-router.post('/logout', auth, (req, res) => {
+router.post('/logout', auth, async(req, res) => {
     try {
         const headerAuth = req.headers.authorization;
-        const userId = req.body.id;
-        let token;
+        const reqUserId = req.body.id;
 
-        if (headerAuth && userId) {
-            token =  headerAuth.substring(7);
-        } else {
-            return res.json({ success: false, message: 'Missing Parameter'});
-        }
-    
-        const decoded = jwt.decode(token);
-      
-        if (decoded.userid === userId) {
-            Session.deleteOne({ userId }).then((session) => {
+        if (!headerAuth && !reqUserId) return res.json({ success: false, message: 'Missing Parameter'});
+        
+        const decoded = await decodeToken(req.headers.authorization);
+        console.log('decoded token:', decoded)
+        if (!decoded.success) return res.json({ success: false, message: decoded.err });
+        
+        const { userId } = decoded.decoded;
+        if (userId === reqUserId) {
+
+            Session.deleteOne({ userId: reqUserId }).then((session) => {
 
                 if (session) return res.json({ success: true });
                 return res.json({ success: false, message: 'Please try again'});
@@ -98,62 +98,53 @@ router.post('/logout', auth, (req, res) => {
     }
 });
 
-router.post('/register', (req, res) => {
-    // check the required parameters
-    // username should be email in the fe
-    const username = req.body.username;
-    const password = req.body.password
-   
+router.post('/register', async(req, res) => {
    try {
-        // validate request
+        const { username, password } = req.body;
+        // validate if email add valid
         if (!validator.validate(username)) return res.json({ success: false, message: "Invalid Email Address."});
-
-        bcrypt.hash(password, 10, (err, password) => {
-            // new user details
-            const newUser = new User({
-                username,
-                password
-            });
-            // save new user
-            newUser.save().then(() => {
-
-                jwt.sign({ email: username }, process.env.SECRET_KEY, {expiresIn: '1hr'}, (err, token) => {
-                    // error in token
-                    if (err) return res.json({ success: false, message: err });
-                    // verify link
-                    const link = process.env.API_LINK + '/confirm/email/' + token;  
-        
-                    sendEmail.SendEmailToUser(username, link)
-                    .then((result) => { 
-                        if (result.success) {
-                            console.log('---------------------------------------------');
-                            console.log(result.details);
-                            console.log('---------------------------------------------');
-                            return res.json({
-                                success: true,
-                                message: "Pending account. Please verify your email"
-                            });
-                            
-                        } else {
-                            // report an email to admin
-                            sendEmail.SendErrorToAdmin(username, sent);
-                            return (
-                                res.json({ 
-                                    success: false, 
-                                    message: "Oops! An error occured while sending the email verification but don't worry, the admin will contact you shortly! "
-                                })
-                            );
-                        }
-                    }).catch((err) => {
-                        res.status(500).json({ 
-                            success: false, 
-                            message: err
-                        });
-                    });
-                });
-            });
+        // hash password
+        const hashPassword = await passwordBcrypt(password);
+        // add new user
+        const newUser = new User({
+            username,
+            password: hashPassword
         });
-          
+        // save the new user to the db
+        newUser.save().then(added => added).catch(err => err);
+        console.log('Is new user added?', newUser);
+        // check if the adding of new user is not successful
+        if (!newUser._id) {
+            return res.status(200).json({ 
+                success: true, 
+                message: newUser
+            });
+        }
+        // after successful adding of new user
+        // generate new token for email verification
+        const generatedToken = await generateTokenSignin({ email: username });
+        // get the generated token
+        const { token } = generatedToken;
+        // verify link to be sent to the user
+        const link = process.env.API_LINK + '/confirm/email/' + token;  
+        // send the generated token to the user's email address
+        console.log('sending email...', link);
+        const isEmailSent = await sendEmail.SendEmailToUser(username, link);
+        console.log('Is Email Sent?', isEmailSent.success);
+        // is sending of email verification is not success?
+        if (!isEmailSent.success) {
+            // report unsuccess email verification to the admin
+            await sendEmail.SendErrorToAdmin(username, isEmailSent.err);
+            return res.json({ 
+                success: false, 
+                message: "An error occured while sending the email verification but don't worry, the admin will contact you shortly! "
+            })
+        }
+        // if success registration, notify user.
+        return res.status(200).json({ 
+            success: true, 
+            "message": "Pending account. Please verify your email"
+        });          
    } catch (err) {
         console.log('Error in Register Route::', err)
         res.status(500).json({ 
@@ -161,40 +152,35 @@ router.post('/register', (req, res) => {
             message: err
         });
    }
-      
 });
 
-router.get('/confirm/email/:token', (req, res) => {
-    const user_token = req.params.token;
+router.get('/confirm/email/:token', async(req, res) => {
     try {
+        const user_token = req.params.token;
        if (!user_token) return res.json({ success: false, message: "User Not Found."});
 
-        const decoded = jwt.decode(user_token);
-        const email = decoded.email;
+        const decodedToken = await decodeToken(user_token);
+
+        const { email } = decodedToken.decoded;
+
        if (email) {
             // check if the user already verified
-            User.findOne({ username: email }).then((result) => {
-                if (result.isVerified) return res.json({ success: false });
+            const userAccount = await User.findOne({ username: email });
+            // return success false if user account already verified
+            if (userAccount.isVerified) return res.json({ success: false });
 
-                // update the email in the user db
-                User.findOneAndUpdate(email, { isVerified: true }, { upsert: true }, (err, doc) => {
-                
-                    if (err) return res.json({ success: false, message: err });
-                    
-                    res.redirect(process.env.FRONT_END_LINK+'/login');
-                })
+            //  Verify email
+            User.findOneAndUpdate(email, { isVerified: true }, { upsert: true }, (err, doc) => {
+                if (err) return res.json({ success: false, message: err });
+                res.redirect(process.env.FRONT_END_LINK+'/login');
+            });
 
-            }).catch((err) => {
-                res.status(400).json({
-                    success: false
-                });
-            })
        } else {
-        return res.json({ success: false, message: "User Not Found."});
+            return res.json({ success: false, message: "User Not Found."});
        }
     } catch(err) {
         res.status(400).json({
-            success: false,
+            success11: false,
             message: err
         });
     }
