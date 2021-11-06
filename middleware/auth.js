@@ -1,48 +1,42 @@
 const JWT = require("jsonwebtoken");
 const Session = require("../models/session.model");
+const { decodeToken } = require("../helper/index");
+const { session } = require("passport");
 
-const verifyToken = (req, res, next) => {
+const verifyToken = async(req, res, next) => {
+    try {        
+        const headerAuth = req.headers.authorization;
+        // headerAuth and userId are required
+        if (!headerAuth) {
+            return res.status(401).json({
+                success133: false,
+                message: "Access Not Authorized"
+            });
+        }
 
-    let token;
-    const headerAuth = req.headers.authorization;
+        // decode the token 
+        const token_valid = await decodeToken(headerAuth).then(data => data).catch(err => err);
+       
+        if (!token_valid.success) return res.status(400).json({ success: false, message: token_valid.err });
 
-    // headerAuth and userId are required
-    if (headerAuth) {
-        token = headerAuth.substring(7);
-    } else {
-        return res.status(401).json({
-            success: false,
-            message: "Access Not Authorized"
-        });
-    }
+        const { userid, token } = token_valid.decoded
 
-    try {
-        // token from the header,
-        // secret key stored in env
-        // callback function
-        JWT.verify(token, process.env.SECRET_KEY, (err, decoded) => {
-            // if error decoding the token
-            if (err) return res.status(400).json({ success: false, message: err });
-
-            // check if the stored userid in the token is same with the user in the session
-            const userId = decoded.userid;
-            if (userId) {
-                // check the session db if the user id exists
-                Session.findOne({ userId }).then((ses) => {
-                    // if the userId not exists
-                    if (!ses || ses.token !== token) return res.status(401).json({ success: false, message: "Access Not Authorized" });
-                     // return if success decoding
-                     return next();
-                });
-            } else {
-                // return invalid token if not same
-                //401 is invalid token , not authorize to access api
-                return res.status(401).json({
-                    success: false,
-                    message: "Access Not Authorized"
-                });
-            }
-        });
+        if (userid) {
+            // check the session db if the user id exists
+            const  hasSession = await Session.findOne({ userid }).then(user => user).catch(err => err);
+            
+            if (!hasSession || hasSession.token !== token) return res.status(401).json({ success: false, message: "Access Not Authorized" });
+             // if user has session
+            return next();
+        
+        } else {
+            // return invalid token if not same
+            //401 is invalid token , not authorize to access api
+            return res.status(401).json({
+                success: false,
+                message: "Access Not Authorized"
+            });
+        }
     } catch (err) {
         //401 is invalid token , not authorize to access api
         return res.status(401).send({

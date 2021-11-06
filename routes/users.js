@@ -159,13 +159,13 @@ router.post('/add/details', auth, async(req, res) => {
         const { authorization } = req.headers;
         const { username, firstname, lastname, country, birthDate } = req.body;
 
-       const decoded = await decodeToken(authorization);
+       const fetched = await decodeToken(authorization);
     
         // validate data
         if (!username || !firstname || !lastname || !country || !birthDate) return res.status(200).json({ success: false, message: "Incomplete parameters" });
        
         const addUserDetails = new UserDetails({
-            userId: decoded.userid,
+            userId: fetched.decoded.userid,
             username,
             firstname,
             lastname,

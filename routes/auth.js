@@ -71,8 +71,8 @@ router.post('/login', (req, res) => {
 
 router.post('/logout', auth, (req, res) => {
     try {
-        let headerAuth = req.headers.authorization;
-        let userId = req.body.id;
+        const headerAuth = req.headers.authorization;
+        const userId = req.body.id;
         let token;
 
         if (headerAuth && userId) {
