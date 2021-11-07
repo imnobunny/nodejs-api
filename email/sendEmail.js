@@ -167,7 +167,7 @@ const SendEmailToAdmin = async() => {
         const mailOptions = {
             from: process.env.EMAIL,
             to: process.env.ADMIN_EMAIL,
-            subject: "Hello, Your Nodemailer is Working ROCKSTARRR! 👋!",
+            subject: "Hello, Your Nodemailer is OKAY 👋!",
             template: 'AdminReminder',
         };
         
