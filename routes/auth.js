@@ -1,8 +1,6 @@
 const router = require('express').Router();
 const User = require('../models/user.model');
 const Session = require('../models/session.model');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const auth = require("../middleware/auth");
 const validator = require("email-validator");
 const sendEmail = require("../email/sendEmail");
@@ -231,45 +229,35 @@ router.post('/forgot-password', async(req, res) => {
     }
 });
 
-router.post('/reset-password', (req, res) => {
+router.post('/reset-password', async(req, res) => {
     try {
         const resetAuth = req.headers.authorization;
-        const password = req.body.password;
-        let token;
+        const { password } = req.body;
 
-        if (resetAuth) {
-            token = resetAuth.substring(7);
-        } else {
-            return res.status(401).json({
+        if (!resetAuth || !password) return res.json({ success: false, message: "Incomplete Parameter"});
+        // check if the JWT expired
+        const generatedToken = await decodeToken(resetAuth);
+        // if generating of token is not success
+        if (!generatedToken.success) return res.status(401).json({ success: false, message: "Access Not Authorized"}); 
+      
+        const { username } = generatedToken.decoded;
+        // hash password
+        const hashPassword = await passwordBcrypt(password);
+        // save new password
+        req.body.password = hashPassword;
+        const isPasswordUpdated = await User.findOneAndUpdate( username, req.body, {upsert: true});
+        console.log('isPasswordUpdated', isPasswordUpdated)
+
+        if (!isPasswordUpdated._id) {
+            return res.json({
                 success: false,
-                message: "Access Not Authorized"
+                message: "An error occured while updating your password. Please try again."
             });
         }
-
-        if (!token || password) return res.json({ success: false, message: "Incomplete Parameter"});
-       
-        // check if the JWT expired
-        jwt.verify(token, process.env.SECRET_KEY, (err, token) => {
-           
-            if (err) return res.status(401).json({ success: false, message: "Access Not Authorized"});
-           
-            // update the password of the username objId
-            const { username } = token;
-
-            bcrypt.hash(password, 10, (err, hash) => {
-                if (err) return res.status(400).json({ success: false, message: err });
-        
-                req.body.password = hash;
-                User.findOneAndUpdate( username, req.body, {upsert: true}, function(err, doc) {
-           
-                    if (err) return res.status(400).json({ success: false, message: err });
-                    return res.json({ success: true });
-                });
-    
-            });
-            
+        // is updating is done, return success true
+        return res.json({
+            success: true,
         });
-
     } catch (err) {
         res.status(500).json({
             success1: false,
