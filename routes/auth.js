@@ -186,55 +186,48 @@ router.get('/confirm/email/:token', async(req, res) => {
     }
 });
 
-router.post('/forgot-password', (req, res) => {
+router.post('/forgot-password', async(req, res) => {
     try {
-        const username = req.body.username;
-        if (!username) return res.json({ success: false, message: "No email found"});
+        const { username } = req.body;
+        // validations
+        if (!username) return res.json({ success: false, message: "Email address is required."});
+        // check if the user already exists
+        const userAccount = await User.findOne({ username });
 
-        User.findOne({ username }).then((user) => {
-            // Is user exists?
-            if (!user) return res.json({ success: false, message: "No email found"});
-            // Is the user account verified?
-            if (!user.isVerified) res.json({ success: false, message: "Your account is not verified yet. Please verify your account first"});
+        console.log('userAccount', userAccount);
+        // if no email address is found
+        if (!userAccount) return res.json({ success: false, message: "No email address is found."});
+        // check if the account is not yet verified
+        if (!userAccount.isVerified) return res.json({ success: false, message: "Your account is not verified yet. Please verify your account first"});
 
-            jwt.sign({ username: user._id }, process.env.SECRET_KEY, {expiresIn: '5m'}, (err, token) => {
-                if (err) res.status(400).json({ success: false, message: "No email found"});
-                
+        const userId = userAccount._id.toString();
+        const generatedToken = generateTokenSignin({ username: userId });
 
-                const reset_link = `http://localhost:5000/api/v1/reset/${token}`;
-
-                // send reset email
-                sendEmail.SendEmailToUser(username, reset_link, "reset_link").then((result) => {
-                    if (result.success) {
-                        console.log('---------------------------------------------');
-                        console.log(result.details);
-                        console.log('---------------------------------------------');
-                        return res.json({
-                            success: true,
-                            message: 'Reset link has been sent to your email.'
-                        });
-                        
-                    } else {
-                        // report an email to admin
-                        sendEmail.SendErrorToAdmin(username, sent);
-                        return (
-                            res.json({ 
-                                success: false, 
-                                message: "Oops! An error occured while sending the reset link to your email but don't worry, the admin will contact you shortly! "
-                            })
-                        );
-                    }
-                }).catch((err) => {
-                    res.status(500).json({ 
-                        success: false, 
-                        message: err
-                    });
-                });
-
+        if (!generatedToken.success) return res.json({ success: false, message: generatedToken.err});
+        // generated token
+        const { token } = generatedToken;
+        const reset_link = process.env.API_LINK + "/reset/" + token;
+        //send email to the user
+        const isEmailSent = await sendEmail.SendEmailToUser(username, reset_link, "reset_link");
+        if (!isEmailSent.success)  {
+            res.json({ 
+                success: false, 
+                message: "Oops! An error occured while sending the reset link to your email but the admin will contact you shortly! "
             });
-        }).catch(() => res.json({ success: false }))
-    } catch(err) {
+        }
 
+        console.log('Email is sent', isEmailSent.details);
+
+        return res.json({
+            success: true,
+            message: 'Reset link has been sent to your email.'
+        });
+
+    } catch(err) {
+        return res.status(401).json({
+            success: false,
+            message: err
+        });
     }
 });
 
