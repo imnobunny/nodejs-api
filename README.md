@@ -1,4 +1,4 @@
-# NodeJS-api
+# NodeJS-Express-API
 
 
 stacks: NodeJs, Express and with google mail api.
