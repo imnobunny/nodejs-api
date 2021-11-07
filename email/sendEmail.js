@@ -144,7 +144,6 @@ const SendErrorToAdmin = async(email, error) => {
             }
         });
         
-    
         return {
             success: true, 
             message: "Email Sent To Admin!"
